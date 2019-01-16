@@ -65,7 +65,7 @@ def DivideXY(dataset):
     return x,y
 
 def sigmoid(x):
-    return 1.0/(1+exp(x))
+    return 1.0/(1+np.exp(x))
 
 if __name__ == '__main__':
     train_data,test_data = load_data()
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters())
-    print(train_data)
+    # print(train_data)
     for i in range(epoch):
         for j in range(cnt_update):
 
