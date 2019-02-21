@@ -1,3 +1,4 @@
+# svm分类器，使用的sklearn库函数
 import scipy.io as sio
 import numpy as np
 import matplotlib.pyplot as plt
