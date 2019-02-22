@@ -24,8 +24,8 @@ plt.show()
 # 定义SVM
 # C = 1
 svc1 = sklearn.svm.LinearSVC(C=1, loss='hinge')
-svc1.fit(data[['X1','X2']],data['y'])
-print(svc1.score(data[['X1','X2']],data['y']))
+svc1.fit(data[['X1', 'X2']], data['y'])
+print(svc1.score(data[['X1', 'X2']], data['y']))
 data['SVM1 Confidence'] = svc1.decision_function(data[['X1', 'X2']])
 # C = 100
 svc100 = sklearn.svm.LinearSVC(C=100, loss='hinge')

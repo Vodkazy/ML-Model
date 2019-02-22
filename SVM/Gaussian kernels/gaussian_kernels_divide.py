@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
 
+
 def plot_decision_boundary(pred_func, X, y, gap):
     # 设定最大最小值，附加一点点gap,进行边缘填充
     x_min, x_max = X[:, 0].min() - gap, X[:, 0].max() + gap
@@ -26,17 +27,18 @@ def plot_decision_boundary(pred_func, X, y, gap):
     plt.legend()
     plt.show()
 
+
 # 导入数据
 data = sio.loadmat('ex6data2.mat')
 X = data['X']
 y = data['y']
-print(X,y)
+print(X, y)
 
 # 画图
 label0 = np.where(y.ravel() == 0)
 label1 = np.where(y.ravel() == 1)
-plt.scatter(X[label0,0], X[label0,1], s=10, marker='x', label='Positive')
-plt.scatter(X[label1,0], X[label1,1], s=10, marker='o', label='Negative')
+plt.scatter(X[label0, 0], X[label0, 1], s=10, marker='x', label='Positive')
+plt.scatter(X[label1, 0], X[label1, 1], s=10, marker='o', label='Negative')
 plt.legend()
 plt.show()
 
@@ -44,12 +46,12 @@ plt.show()
 # Training SVM with RBF Kernel (Dataset 2)
 # 这里需要注意一下，在高斯核函数中，参数sigma与RBF核函数中的gamma的关系是：gamma= 1/2*(sigma**2)
 # 所以当sigma =0.1 ，gamma= 50
-svc = svm.SVC(kernel='rbf',gamma=50,C=1.0)
-svc.fit(X,y.ravel())
-#看一下训练的准确率
+svc = svm.SVC(kernel='rbf', gamma=50, C=1.0)
+svc.fit(X, y.ravel())
+# 看一下训练的准确率
 y_pred = svc.predict(X)
-acc_train = np.mean(y_pred==y.ravel())*100
-print("the accuracy of train data set : %.2f %%" %acc_train)
+acc_train = np.mean(y_pred == y.ravel()) * 100
+print("the accuracy of train data set : %.2f %%" % acc_train)
 
-#可视化决策边界
-plot_decision_boundary(lambda x:svc.predict(x),X,y,0.3)
+# 可视化决策边界
+plot_decision_boundary(lambda x: svc.predict(x), X, y, 0.3)

@@ -5,9 +5,11 @@ import pandas as pd
 import seaborn as sns
 import scipy.io as sio
 
+
 # kernel function 高斯核函数
 def gaussian_kernel(x1, x2, sigma):
     return np.exp(- np.power(x1 - x2, 2).sum() / (2 * (sigma ** 2)))
+
 
 # 加载数据
 mat = sio.loadmat('ex6data2.mat')

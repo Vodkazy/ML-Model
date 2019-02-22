@@ -11,8 +11,9 @@ from data import *
 hidden_size = 128
 epoch_size = 200000
 print_point = 5000  # processing status will be printed into screen at print_point
-plot_point = 1000   # mark one point in matplot picture
+plot_point = 1000  # mark one point in matplot picture
 learning_rate = 0.005
+
 
 # return the most likelihood country when given the output of prediction
 def getMostlikelyCountry(output):
@@ -21,9 +22,11 @@ def getMostlikelyCountry(output):
     name_index = max_pos[0][0]
     return country_names[name_index], name_index
 
+
 # choose one name from given dataset randomly
 def randomChooseOneName(names):
-    return names[random.randint(0,len(names)-1)]
+    return names[random.randint(0, len(names) - 1)]
+
 
 # choose one country and its names from given dataset randomly
 def randomChooseTrainingData():
@@ -33,6 +36,7 @@ def randomChooseTrainingData():
     names_tensor = namesToTensor(names)
     return country_name, names, country_name_tensor, names_tensor
 
+
 # calculate time from begin_time to now
 def timing(begin_time):
     now = time.time()
@@ -40,6 +44,7 @@ def timing(begin_time):
     m = math.floor(s / 60)
     s -= m * 60
     return '%dm %ds' % (m, s)
+
 
 # train the RNN model
 def train(country_name_tensor, names_tensor):
@@ -57,15 +62,18 @@ def train(country_name_tensor, names_tensor):
     optimizer.step()
     return output, loss.data[0]
 
+
 # save out model as one file
-def saveModel(model,filename):
+def saveModel(model, filename):
     torch.save(model, filename)
+
 
 # print the matplot picture
 def plotDraw(datas):
     plt.figure()
     plt.plot(datas)
     plt.show()
+
 
 current_loss = 0
 all_losses = []
@@ -85,7 +93,8 @@ for epoch in range(1, epoch_size + 1):
     if epoch % print_point == 0:
         guess_country, guess_country_index = getMostlikelyCountry(output)
         ans = '✓' if guess_country == country_name else '✗ (%s)' % country_name
-        print('%d %d%% (%s) %.4f %s / %s %s' % (epoch, epoch / epoch_size * 100, timing(start), loss, names, guess_country, ans))
+        print('%d %d%% (%s) %.4f %s / %s %s' % (
+        epoch, epoch / epoch_size * 100, timing(start), loss, names, guess_country, ans))
 
     if epoch % plot_point == 0:
         all_losses.append(current_loss / plot_point)
