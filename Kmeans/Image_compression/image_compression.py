@@ -1,3 +1,4 @@
+# kmeans用于图像压缩
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from skimage import io
