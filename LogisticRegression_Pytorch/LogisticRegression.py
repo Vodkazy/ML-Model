@@ -1,3 +1,11 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2019/01/16 10:34
+  @ Author   : Vodka
+  @ File     : LogisticRegression.py
+  @ Software : PyCharm
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,16 +20,27 @@ class LogisticRegression(nn.Module):
         self.linear = nn.Linear(in_features=input_size, out_features=1, bias=True)
 
     def forward(self, input):
+        """
+        :param input:
+        :return:
+        """
         self.output = F.sigmoid(self.linear(input))
         return self.output
 
 
 def saveModel(model):
+    """
+    :param model:
+    :return:
+    """
     torch.save(model.state_dict(), 'model')
     print("模型保存成功！")
 
 
 def load_data():
+    """
+    :return:
+    """
     train_data = []  # 4个变量 1个函数值  这里只用target为0或者1的数据
     test_data = []
     dataset = datasets.load_iris()
@@ -60,6 +79,10 @@ def load_data():
 
 
 def DivideXY(dataset):
+    """
+    :param dataset:
+    :return:
+    """
     x = []
     y = []
     for item in dataset:
@@ -69,6 +92,10 @@ def DivideXY(dataset):
 
 
 def sigmoid(x):
+    """
+    :param x:
+    :return:
+    """
     return 1.0 / (1 + np.exp(x))
 
 
@@ -86,7 +113,7 @@ if __name__ == '__main__':
     for i in range(epoch):
         for j in range(cnt_update):
             data = ((np.array(train_data[j * mini_batch:80])) if (j == cnt_update - 1) else(
-            np.array(train_data[j * mini_batch:(j + 1) * mini_batch])))
+                np.array(train_data[j * mini_batch:(j + 1) * mini_batch])))
 
             # 训练的每个数据都应该是个数组 整个训练集的每个元素也是个数组
             x = torch.Tensor(list(data[:, :3]))

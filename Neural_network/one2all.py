@@ -1,3 +1,11 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2019/01/17 21:25
+  @ Author   : Vodka
+  @ File     : one2all.py
+  @ Software : PyCharm
+"""
 # load the datasets 导入手写字体数据集
 from sklearn.datasets import load_digits
 import numpy as np
@@ -5,8 +13,12 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 
 
-# 可视化训练集
 def draw_digits(classes):
+    """
+    可视化训练集
+    :param classes:
+    :return:
+    """
     num_classes = len(classes)
     samples_per_class = 5
     for y, cla in enumerate(classes):
@@ -25,15 +37,30 @@ def draw_digits(classes):
 
 
 def sigmoid(Z):
+    """
+    :param Z:
+    :return:
+    """
     return 1 / (1 + np.exp(-Z))
 
 
 def h(theta, X):
+    """
+    :param theta:
+    :param X:
+    :return:
+    """
     return sigmoid(X.dot(theta))
 
 
-# 求解梯度
 def gradient(theta, X, Y):
+    """
+    求解梯度
+    :param theta:
+    :param X:
+    :param Y:
+    :return:
+    """
     m, n = X.shape
     theta = theta.reshape(-1, 1)  # 在使用了reshape（-1，1）之后，数据变成了一列
     H = h(theta, X)
@@ -45,8 +72,14 @@ def gradient(theta, X, Y):
     return g
 
 
-# 代价函数
 def cost_function(theta, X, Y):
+    """
+    代价函数
+    :param theta:
+    :param X:
+    :param Y:
+    :return:
+    """
     m = X.shape[0]
     J = 0
     theta = theta.reshape((X.shape[1], 1))  # 这步必须有
@@ -57,8 +90,14 @@ def cost_function(theta, X, Y):
     return J
 
 
-# 一对多分类，训练多个分类器
 def one2all(X, Y, num_class):
+    """
+    一对多分类，训练多个分类器
+    :param X:
+    :param Y:
+    :param num_class:
+    :return:
+    """
     m, n = X.shape
     thetas = np.zeros((n, num_class))
     # 每次只训练一个分类器（将数字认成i的能力），每次传进去的Y向量除了Y==i的地方是1，其他都是0
@@ -71,39 +110,46 @@ def one2all(X, Y, num_class):
     return thetas
 
 
-# 预测
 def predict(thetas, X):
+    """
+    预测
+    :param thetas:
+    :param X:
+    :return:
+    """
     pred = np.argmax(h(thetas, X), axis=1)  # 选出数值最大的下标作为分类
     return pred
 
 
-digits = load_digits()
-print(digits.keys())
-data = digits.data
-target = digits.target
-reg = 1.0
+if __name__ == '__main__':
+    digits = load_digits()
+    print(digits.keys())
+    data = digits.data
+    target = digits.target
+    reg = 1.0
 
-# Randomly select 50 data points to display
-classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-draw_digits(classes)
+    # Randomly select 50 data points to display
+    classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    draw_digits(classes)
 
-X = data
-Y = target
-Y = Y.reshape((-1, 1))
-# 标准化
-X_mean = np.mean(X, axis=0)
-X -= X_mean
-m = X.shape[0]
-X = np.hstack((np.ones((m, 1)), X))  # add the one
-print(X.shape, Y.shape)
+    X = data
+    Y = target
+    Y = Y.reshape((-1, 1))
+    # 标准化
+    X_mean = np.mean(X, axis=0)
+    X -= X_mean
+    m = X.shape[0]
+    X = np.hstack((np.ones((m, 1)), X))  # add the one
+    print(X.shape, Y.shape)
 
-thetas = one2all(X, Y, 10)
-print(thetas.shape)
+    thetas = one2all(X, Y, 10)
+    print(thetas.shape)
 
-# 测试
-m, n = data.shape
-example_size = 10
-example_index = np.random.choice(m, example_size)
-for i, idx in enumerate(example_index):
-    print(
-        "%d th example is number %d,we predict it as %d" % (i, target[idx], predict(thetas, X[idx, :].reshape(1, -1))))
+    # 测试
+    m, n = data.shape
+    example_size = 10
+    example_index = np.random.choice(m, example_size)
+    for i, idx in enumerate(example_index):
+        print(
+            "%d th example is number %d,we predict it as %d" % (
+            i, target[idx], predict(thetas, X[idx, :].reshape(1, -1))))

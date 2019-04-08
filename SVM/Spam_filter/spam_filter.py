@@ -1,3 +1,11 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2019/02/23 23:52
+  @ Author   : Vodka
+  @ File     : spam_filter.py
+  @ Software : PyCharm
+"""
 # 在这一部分中，我们的目标是使用SVM来构建垃圾邮件过滤器。
 # 在练习文本中，有一个任务涉及一些文本预处理，以获得适合SVM处理的格式的数据。
 # 然而，这个任务很简单（将字词映射到为练习提供的字典中的ID），而其余的预处理步骤

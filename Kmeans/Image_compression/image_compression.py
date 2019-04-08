@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2018/12/14 11:12
+  @ Author   : Vodka
+  @ File     : image_compression.py
+  @ Software : PyCharm
+"""
 # kmeans用于图像压缩
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans

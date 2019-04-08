@@ -1,17 +1,33 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2018/12/17 21:25
+  @ Author   : Vodka
+  @ File     : datapy.py
+  @ Software : PyCharm
+"""
 import torch
-import torch.nn as nn
 import string
 import glob
 import os
 import unicodedata
 
 
-# return file accordant filenames(including extension filename)
-def findFiles(path): return glob.glob(path)
+def findFiles(path):
+    """
+    file accordant filenames(including extension filename)
+    :param path:
+    :return:
+    """
+    return glob.glob(path)
 
 
-# transfer Unicode to ASCII
 def unicodeToAscii(s):
+    """
+    transfer Unicode to ASCII
+    :param s:
+    :return:
+    """
     return ''.join(
         c for c in unicodedata.normalize('NFD', s)
         if unicodedata.category(c) != 'Mn'
@@ -19,19 +35,31 @@ def unicodeToAscii(s):
     )
 
 
-# get names in one txt-file
 def readNames(filename):
+    """
+    get names in one txt-file
+    :param filename:
+    :return:
+    """
     lines = open(filename).read().strip().split('\n')
     return [unicodeToAscii(line) for line in lines]
 
 
-# get the index of one letter
 def getIndex(letter):
+    """
+    get the index of one letter
+    :param letter:
+    :return:
+    """
     return (vocabulary.find(letter))
 
 
-# transfer namestringArray to Tensor
 def namesToTensor(namestringArray):
+    """
+    transfer namestringArray to Tensor
+    :param namestringArray:
+    :return:
+    """
     # the dimension is:  row:numbers of names  col:57 letters
     names_tensor = torch.zeros(len(namestringArray), 1, len(vocabulary))
     for _index, letter in enumerate(namestringArray):

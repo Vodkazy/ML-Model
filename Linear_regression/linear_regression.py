@@ -1,8 +1,20 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  @ Time     : 2019/01/16 08:17
+  @ Author   : Vodka
+  @ File     : linear_regression.py
+  @ Software : PyCharm
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def load_data(filename):
+    """
+    :param filename:
+    :return:
+    """
     data = []
     file = open(filename)
     for line in file.readlines():
@@ -17,6 +29,11 @@ def load_data(filename):
 
 
 def draw_data(X, Y):
+    """
+    :param X:
+    :param Y:
+    :return:
+    """
     plt.scatter(X[:, -1:], Y, color='b', marker='o')
     plt.xlabel('x')
     plt.xlabel('y')
@@ -24,6 +41,11 @@ def draw_data(X, Y):
 
 
 def draw_result(X, Y):
+    """
+    :param X:
+    :param Y:
+    :return:
+    """
     # 可视化边界线
     plt.subplot(211)
     plt.scatter(X[:, 1], Y, color='r', marker='x')
@@ -39,16 +61,35 @@ def draw_result(X, Y):
 
 
 def h(theta, X):
+    """
+    :param theta:
+    :param X:
+    :return:
+    """
     return X.dot(theta)
 
 
 def cost_function(theta, X, Y):
+    """
+    :param theta:
+    :param X:
+    :param Y:
+    :return:
+    """
     m = X.shape[0]
     result = np.sum(np.square(h(theta, X) - Y)) / (2 * m)
     return result
 
 
 def gradient_descent(theta, X, Y, alpha, iterate_times):
+    """
+    :param theta:
+    :param X:
+    :param Y:
+    :param alpha:
+    :param iterate_times:
+    :return:
+    """
     J_history = []
     m = X.shape[0]
     for i in range(iterate_times):
@@ -58,19 +99,20 @@ def gradient_descent(theta, X, Y, alpha, iterate_times):
     return theta, J_history
 
 
-data = load_data('ex1data1.txt')
-X = data[:, :-1]  # 使用数字指定列的话会返回一个一维数组，但是如果用切片则会返回二维的
-X = np.hstack((np.ones((X.shape[0], 1)), X))  # 加一列
-m = X.shape[0]  # 行数
-# X.size = m*(n+1) theta.size = (n+1)*1
-Y = data[:, -1:]
-# 描述训练集
-draw_data(X, Y)
+if __name__ == '__main__':
+    data = load_data('ex1data1.txt')
+    X = data[:, :-1]  # 使用数字指定列的话会返回一个一维数组，但是如果用切片则会返回二维的
+    X = np.hstack((np.ones((X.shape[0], 1)), X))  # 加一列
+    m = X.shape[0]  # 行数
+    # X.size = m*(n+1) theta.size = (n+1)*1
+    Y = data[:, -1:]
+    # 描述训练集
+    draw_data(X, Y)
 
-theta = np.zeros((2, 1))
-alpha = 0.01
-iterate_times = 1000
-theta, J_history = gradient_descent(theta, X, Y, alpha, iterate_times)
+    theta = np.zeros((2, 1))
+    alpha = 0.01
+    iterate_times = 1000
+    theta, J_history = gradient_descent(theta, X, Y, alpha, iterate_times)
 
-# 描述训练结果
-draw_result(X, Y)
+    # 描述训练结果
+    draw_result(X, Y)
