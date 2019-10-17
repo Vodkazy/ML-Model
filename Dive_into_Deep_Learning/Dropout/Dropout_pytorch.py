@@ -54,14 +54,6 @@ def show_fashion_mnist(images, labels):
     # plt.show()
 
 
-# 定义优化器
-def sgd(params, lr, batch_size):
-    # 为了和原书保持一致，这里除以了batch_size，但是应该是不用除的，因为一般用PyTorch计算loss时就默认已经
-    # 沿batch维求了平均了。
-    for param in params:
-        param.data -= lr * param.grad / batch_size  # 注意这里更改param时用的param.data
-
-
 # 计算准确率
 def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
@@ -111,7 +103,6 @@ num_inputs = 784
 num_hiddens1 = 256
 num_hiddens2 = 256
 num_outputs = 10
-num_epochs, lr = 10, 100
 dropout_1, dropout_2 = 0.2, 0.5
 
 
@@ -122,7 +113,11 @@ class FlattenLayer(nn.Module):
     def forward(self, x):  # x shape: (batch, *, *, ...)
         return x.view(x.shape[0], -1)
 
-
+"""
+    在PyTorch中，我们只需要在全连接层后添加Dropout层并指定丢弃概率。在训练模型时，Dropout
+    层将以指定的丢弃概率随机丢弃上一层的输出元素；在测试模型时（即model.eval()后），
+    Dropout层并不发挥作用。
+"""
 net = nn.Sequential(
     FlattenLayer(),
     nn.Linear(num_inputs, num_hiddens1),
@@ -133,8 +128,6 @@ net = nn.Sequential(
     nn.Dropout(dropout_2),
     nn.Linear(num_hiddens2, num_outputs)
 )
-for param in net.parameters():
-    nn.init.normal_(param,mean=0,std=0.01)
 
 # CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
 # 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数

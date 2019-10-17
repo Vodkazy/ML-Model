@@ -126,8 +126,6 @@ net = nn.Sequential(
     nn.ReLU(),
     nn.Linear(num_hiddens, num_outputs),
 )
-for param in net.parameters():
-    nn.init.normal_(param,mean=0,std=0.01)
 
 # CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
 # 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数

@@ -46,8 +46,6 @@ class LinearNet(nn.Module):
 
 
 net = LinearNet(num_inputs)
-for param in net.parameters():
-    nn.init.normal_(param,mean=0,std=0.01)
 # 也可以用nn.Sequential来实现模型层的添加
 # net = nn.Sequential()
 # net.add_module('linear', nn.Linear(num_inputs, 1))

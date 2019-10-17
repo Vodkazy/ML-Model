@@ -154,6 +154,12 @@ train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
 # 初始化模型参数
 # 输入层784 -> 隐藏层256 -> 隐藏层256 -> 输出层10
+num_inputs = 784
+num_hiddens1 = 256
+num_hiddens2 = 256
+num_outputs = 10
+num_epochs, lr = 10, 100
+dropout_1, dropout_2 = 0.2, 0.5
 W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens1)), dtype=torch.float)
 b1 = torch.zeros(num_hiddens1, dtype=torch.float)
 W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens1, num_hiddens2)), dtype=torch.float)
