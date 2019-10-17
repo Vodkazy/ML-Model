@@ -18,6 +18,7 @@ from torch.nn import init
 # 和加载数据集有关的函数
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     """Download the fashion mnist dataset and then load into memory."""
+    # 将28*28的矩阵转换为一维的784的矩阵
     trans = []
     if resize:
         trans.append(torchvision.transforms.Resize(size=resize))
