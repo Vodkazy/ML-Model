@@ -3,7 +3,7 @@
 """
   @ Time     : 2019/01/16 08:17
   @ Author   : Vodka
-  @ File     : linear_regression.py
+  @ File     : linear_regression_scratch.py
   @ Software : PyCharm
 """
 import numpy as np
