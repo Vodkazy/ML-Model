@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  @ Time     : 2019/10/17 下午3:55
+  @ Time     : 2019/10/17 下午10:19
   @ Author   : Vodka
-  @ File     : MLP_scratch .py
+  @ File     : Dropout_pytorch .py
   @ Software : PyCharm
 """
 import torch
 import torchvision
-import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import torch.nn as nn
+from collections import OrderedDict
+from torch.nn import init
 
-
-# Softmax就是对每个数据取个以e为底的指数，然后算完后除以所有数据的sum
 
 # 和加载数据集有关的函数
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
@@ -62,25 +62,6 @@ def sgd(params, lr, batch_size):
         param.data -= lr * param.grad / batch_size  # 注意这里更改param时用的param.data
 
 
-# 实现softmax
-def softmax(X):
-    X_exp = X.exp()
-    partition = X_exp.sum(dim=1, keepdim=True)
-    return X_exp / partition  # 这里应用了广播机制
-
-
-# 实现ReLU
-def ReLU(X):
-    return torch.max(input=X, other=torch.tensor(0.0))
-
-
-# 定义模型
-def net(X):
-    X = X.view((-1, num_inputs))
-    H = ReLU(torch.mm(X, W1) + b1)
-    return torch.mm(H, W2) + b2
-
-
 # 计算准确率
 def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
@@ -124,27 +105,46 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
 batch_size = 256
 train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
-# 初始化模型参数
-# 输入层784 -> 隐藏层256 -> 输出层10
+# 定义和初始化模型
+# 输入层784 -> 隐藏层256 -> 隐藏层256 -> 输出层10
 num_inputs = 784
-num_hiddens = 256
+num_hiddens1 = 256
+num_hiddens2 = 256
 num_outputs = 10
-num_epochs, lr = 5, 100
-W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens)), dtype=torch.float)
-b1 = torch.zeros(num_hiddens, dtype=torch.float)
-W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens, num_outputs)), dtype=torch.float)
-b2 = torch.zeros(num_outputs, dtype=torch.float)
-W1.requires_grad_(requires_grad=True)
-b1.requires_grad_(requires_grad=True)
-W2.requires_grad_(requires_grad=True)
-b2.requires_grad_(requires_grad=True)
+num_epochs, lr = 10, 100
+dropout_1, dropout_2 = 0.2, 0.5
 
-# 训练模型，这里直接使用PyTorch提供的包括softmax运算和交叉熵损失计算的函数
-train(net, train_iter, test_iter, torch.nn.CrossEntropyLoss(), num_epochs, batch_size, [W1, b1, W2, b2], lr)
 
-# 预测
-X, y = iter(test_iter).next()
-true_labels = get_fashion_mnist_labels(y.numpy())
-pred_labels = get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
-titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-show_fashion_mnist(X[0:9], titles[0:9])
+class FlattenLayer(nn.Module):
+    def __init__(self):
+        super(FlattenLayer, self).__init__()
+
+    def forward(self, x):  # x shape: (batch, *, *, ...)
+        return x.view(x.shape[0], -1)
+
+
+net = nn.Sequential(
+    FlattenLayer(),
+    nn.Linear(num_inputs, num_hiddens1),
+    nn.ReLU(),
+    nn.Dropout(dropout_1),
+    nn.Linear(num_hiddens1, num_hiddens2),
+    nn.ReLU(),
+    nn.Dropout(dropout_2),
+    nn.Linear(num_hiddens2, num_outputs)
+)
+for param in net.parameters():
+    nn.init.normal_(param,mean=0,std=0.01)
+
+# CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
+# 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数
+# 可以理解为 CrossEntropyLoss() = log_softmax() + NLLLoss()（负对数似然损失函数）
+# 我们通常使用的cross entropy loss，几乎都可以称作softmax loss
+loss = nn.CrossEntropyLoss()
+
+# 定义优化算法
+optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+
+# 训练模型
+num_epochs = 5
+train(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)

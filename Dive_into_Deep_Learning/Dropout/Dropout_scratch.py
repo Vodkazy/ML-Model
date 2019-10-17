@@ -1,19 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  @ Time     : 2019/10/17 下午3:55
+  @ Time     : 2019/10/17 下午9:33
   @ Author   : Vodka
-  @ File     : MLP_scratch .py
+  @ File     : dropout .py
   @ Software : PyCharm
 """
 import torch
 import torchvision
-import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import numpy as np
+import torch.nn as nn
+from collections import OrderedDict
+from torch.nn import init
 
 
-# Softmax就是对每个数据取个以e为底的指数，然后算完后除以所有数据的sum
+def dropout(X, drop_prob):
+    # 相当于把一些部分清零，其他部分除以(1-drop_prob)
+    X = X.float()
+    assert 0 <= drop_prob <= 1
+    keep_prob = 1 - drop_prob
+    # 这种情况下把全部元素都丢弃
+    if keep_prob == 0:
+        return torch.zeros_like(X)
+    mask = (torch.randn(X.shape) < keep_prob).float()
+    return mask * X / keep_prob
+
 
 # 和加载数据集有关的函数
 def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
@@ -75,20 +88,35 @@ def ReLU(X):
 
 
 # 定义模型
-def net(X):
+def net(X ,is_training=True):
     X = X.view((-1, num_inputs))
-    H = ReLU(torch.mm(X, W1) + b1)
-    return torch.mm(H, W2) + b2
+    H1 = ReLU(torch.mm(X, W1) + b1)
+    # 只在训练模型时使⽤丢弃法
+    if is_training:
+        H1 = dropout(H1, dropout_1)
+    H2 = ReLU(torch.mm(H1, W2) + b2)    # 在第⼀层全连接后添加丢弃层
+    # 只在训练模型时使⽤丢弃法
+    if is_training:
+        H2 = dropout(H2, dropout_2)     # 在第⼆层全连接后添加丢弃层
+    return torch.mm(H2, W3) + b3
 
 
 # 计算准确率
 def evaluate_accuracy(data_iter, net):
     acc_sum, n = 0.0, 0
     for X, y in data_iter:
-        acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
+        if isinstance(net, torch.nn.Module):
+            net.eval()  # 评估模式, 这会关闭dropout
+            acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
+            net.train()  # 改回训练模式
+        else:  # ⾃定义的模型
+            if ('is_training' in net.__code__.co_varnames):
+                # 如果有is_training这个参数,将is_training设置成False
+                acc_sum += (net(X, is_training=False).argmax(dim=1) ==y).float().sum().item()
+            else:
+                acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
         n += y.shape[0]
     return acc_sum / n
-
 
 # 训练模型
 def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
@@ -125,19 +153,19 @@ batch_size = 256
 train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
 # 初始化模型参数
-# 输入层784 -> 隐藏层256 -> 输出层10
-num_inputs = 784
-num_hiddens = 256
-num_outputs = 10
-num_epochs, lr = 5, 100
-W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens)), dtype=torch.float)
-b1 = torch.zeros(num_hiddens, dtype=torch.float)
-W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens, num_outputs)), dtype=torch.float)
-b2 = torch.zeros(num_outputs, dtype=torch.float)
+# 输入层784 -> 隐藏层256 -> 隐藏层256 -> 输出层10
+W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens1)), dtype=torch.float)
+b1 = torch.zeros(num_hiddens1, dtype=torch.float)
+W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens1, num_hiddens2)), dtype=torch.float)
+b2 = torch.zeros(num_hiddens2, dtype=torch.float)
+W3 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens2, num_outputs)), dtype=torch.float)
+b3 = torch.zeros(num_outputs, dtype=torch.float)
 W1.requires_grad_(requires_grad=True)
 b1.requires_grad_(requires_grad=True)
 W2.requires_grad_(requires_grad=True)
 b2.requires_grad_(requires_grad=True)
+W3.requires_grad_(requires_grad=True)
+b3.requires_grad_(requires_grad=True)
 
 # 训练模型，这里直接使用PyTorch提供的包括softmax运算和交叉熵损失计算的函数
 train(net, train_iter, test_iter, torch.nn.CrossEntropyLoss(), num_epochs, batch_size, [W1, b1, W2, b2], lr)

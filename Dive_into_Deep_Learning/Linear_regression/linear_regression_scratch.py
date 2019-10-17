@@ -10,6 +10,8 @@ import random
 import torch
 from matplotlib import pyplot as plt
 import numpy as np
+
+
 # 线性回归就是y=Xw+b
 
 def show_train_data(features, labels):
@@ -62,12 +64,12 @@ b.requires_grad_(requires_grad=True)
 for epoch in range(num_epochs):
     # 训练模型⼀共需要num_epochs个迭代周期，在每⼀个迭代周期中，会使⽤训练数据集中所有样本⼀次
     for X, y in read_data(batch_size, features, labels):
-        l = loss_squared(predict(X, w, b), y).sum() # 注意这里要用sum()将向量转为标量
+        l = loss_squared(predict(X, w, b), y).sum()  # 注意这里要用sum()将向量转为标量
         l.backward()
         sgd([w, b], learning_rate, batch_size)
         w.grad.data.zero_()
         b.grad.data.zero_()
     train_l = loss_squared(predict(features, w, b), labels)
     print('epoch %d, loss %f' % (epoch + 1, train_l.mean().item()))
-print('真实函数y=%.2fx1%.2fx2+%.2f' %(true_w[0], true_w[1],true_b))
-print('拟合函数y=%.2fx1%.2fx2+%.2f' %(w[0], w[1],b))
+print('真实函数y=%.2fx1%.2fx2+%.2f' % (true_w[0], true_w[1], true_b))
+print('拟合函数y=%.2fx1%.2fx2+%.2f' % (w[0], w[1], b))

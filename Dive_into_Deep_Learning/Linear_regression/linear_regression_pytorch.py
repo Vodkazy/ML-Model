@@ -43,7 +43,11 @@ class LinearNet(nn.Module):
     # 查看参数
     # net.linear.weight.detach().numpy()
     # net.linear.bias
+
+
 net = LinearNet(num_inputs)
+for param in net.parameters():
+    nn.init.normal_(param,mean=0,std=0.01)
 # 也可以用nn.Sequential来实现模型层的添加
 # net = nn.Sequential()
 # net.add_module('linear', nn.Linear(num_inputs, 1))
@@ -73,4 +77,4 @@ plt.legend()
 plt.show()
 print('真实函数y=%.2fx1%.2fx2+%.2f' % (true_w[0], true_w[1], true_b))
 print('拟合函数y=%.2fx1%.2fx2+%.2f' % (
-net.linear.weight.detach().numpy()[0][0], net.linear.weight.detach().numpy()[0][1], net.linear.bias))
+    net.linear.weight.detach().numpy()[0][0], net.linear.weight.detach().numpy()[0][1], net.linear.bias))

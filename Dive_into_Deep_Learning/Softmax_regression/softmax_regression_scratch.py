@@ -11,6 +11,8 @@ import torchvision
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+
+
 # Softmax就是对每个数据取个以e为底的指数，然后算完后除以所有数据的sum
 
 # 和加载数据集有关的函数
@@ -92,7 +94,7 @@ def evaluate_accuracy(data_iter, net):
 
 # 训练模型
 def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
-              params=None, lr=None, optimizer=None):
+          params=None, lr=None, optimizer=None):
     for epoch in range(num_epochs):
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
         for X, y in train_iter:
@@ -125,6 +127,7 @@ batch_size = 256
 train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
 # 初始化模型参数
+# 输入层784 -> 输出层10
 num_inputs = 784
 num_outputs = 10
 num_epochs, lr = 5, 0.1
