@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  @ Time     : 2019/10/25 上午11:09
+  @ Time     : 2019/10/27 下午3:52
   @ Author   : Vodka
-  @ File     : RNN_pytorch .py
+  @ File     : GRU_pytorch .py
   @ Software : PyCharm
 """
+import math
+import time
 import torch
 from torch import nn
 
@@ -13,12 +15,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 num_hiddens = 128
 num_steps = 8  # 训练的时候步长是多少 就只能固定的用多长的序列来预测多长的序列 否则就要padding填充
-num_epochs = 64  # 过大会过拟合 造成的现象就是 直接背诵原文
+num_epochs = 40  # 过大会过拟合 造成的现象就是 直接背诵原文
 batch_size = 16
 
 char_id_dict = {}
 id_char_dict = {}
 
+"""
+    我们通常使用困惑度（perplexity）来评价语言模型的好坏。显然，任何一个有效模型的困惑度必须小于类别个数.
+    困惑度是对交叉熵损失函数做指数运算后得到的值。特别地，
+        - 最佳情况下，模型总是把标签类别的概率预测为1，此时困惑度为1；
+        - 最坏情况下，模型总是把标签类别的概率预测为0，此时困惑度为正无穷；
+        - 基线情况下，模型总是预测所有类别的概率都相同，此时困惑度为类别个数
+"""
 
 def data_iter_consecutive(corpus_indices, batch_size, num_steps, device=device):
     # 每次处理batch_size个字符，需处理batch_len次，batch_size可看做有batch_size个程序并行处理
@@ -52,10 +61,10 @@ def to_onehot(X, n_class):
     return [one_hot(X[:, i], n_class) for i in range(X.shape[1])]
 
 
-class RNNModel(nn.Module):
+class GRUModel(nn.Module):
     def __init__(self):
-        super(RNNModel, self).__init__()
-        self.rnn = nn.RNN(input_size=vocab_size, hidden_size=num_hiddens, num_layers=1, bidirectional=False)
+        super(GRUModel, self).__init__()
+        self.rnn = nn.GRU(input_size=vocab_size, hidden_size=num_hiddens, num_layers=1, bidirectional=False)
         self.dense = nn.Linear(num_hiddens, vocab_size)
         self.state = None
 
@@ -75,8 +84,8 @@ class RNNModel(nn.Module):
         self.to(device)
         state = None
         for epoch in range(num_epochs):
+            l_sum, n, start = 0.0, 0, time.time()
             torch.cuda.empty_cache()
-            print('Epoch: %d' % (epoch + 1))
             train_loss = 0
             dataset = data_iter_consecutive(corpus_indices, batch_size, num_steps, device)
             for batch_idx, (X, Y) in enumerate(dataset):
@@ -96,14 +105,21 @@ class RNNModel(nn.Module):
                 l.backward()
                 optimizer.step()
                 train_loss += l.item()
+                l_sum += l.item() * y.shape[0]
+                n += y.shape[0]
                 if (batch_idx + 1) % 10 == 0:
                     print('No.%d batch , Loss: %.3f' % (batch_idx + 1, train_loss / 10))
                     train_loss = 0
+            try:
+                perplexity = math.exp(l_sum / n)
+            except OverflowError:
+                perplexity = float('inf')
+            print('Epoch %d, perplexity %f, time %.2f sec' % (epoch + 1, perplexity, time.time() - start))
 
         torch.save(self.state_dict(), 'rnn_tangshi.pt')
         print("save model successfully!")
 
-    def predict(self, given_words, seq_len): # 输入规模要和输出规模一致
+    def predict(self, given_words, seq_len):  # 输入规模要和输出规模一致
         state = None
         output = [char_id_dict[given_words[0]]]
         for t in range(seq_len + len(given_words) - 1):
@@ -135,49 +151,25 @@ if __name__ == '__main__':
     vocab_size = len(char_id_dict)
     corpus_indices = [char_id_dict[char] for char in corpus]
 
-    # 输入形状为(时间步数, 批量大小, 词典大小)
-    # 输出形状为(时间步数, 批量大小, 词典大小)
-    # 隐藏状态h的形状为(层数, 批量大小, 隐藏单元个数)
-    model = RNNModel().to(device)
-    # model.train()
+    model = GRUModel().to(device)
+    model.train()
     model.load_state_dict(torch.load('rnn_tangshi.pt', map_location=torch.device(device)))
     print(model.predict('金陵月色', 256))
 
     """
-        金陵月色，青山空水雁声。 
-        汉河三万里，人大嫁作商人妇。 
-        君别意不知，马住，瑶池柳日夕。  
-        空文断，秋雨过王看。 
-        城中怨野尽，去年，寒禽。 
-        不见长安，乐事，铜雀春光销月下。 
-        行人有人，不得志沾巾。  
-        家生女幽居，偶然回首。 
-        长风早晚来。 
-        我闻苦死生，坐看红颜老。 
-        回看两楹奠，当与梦啼鸟！  
-        近边人事，相见，红旗。  
-        金阙烟下飞，美人行泪空。 
-        圣皇重阳月，相与而言，未有共真未燕。 
-        不死生低摇，一片云石万。  
-        北阙七月照，清落叶人从初以道之。  
-        晚来望君烟，今事非北斗阑干。  
-        来文章道已棹，辞歌声花满急，流声一枝弹。
-        
-        金陵月色风风。 
-        明朝散发多秋草，夜飞白发无故乡。  
-        不见来者来，双声西畔烟。 
-        君言不知其所稀，不见群鸥日日来。 
-        江口苍苍。 
-        长江春色雪山夜，胡天无事空山来。  
-        故园江水谢家君，且乐清光近今出。 
-        鸿来不疑倚轻所，空月十五十年十里堤！   
-        我欲归无轻敌，始觉声之，烟波澜里谁短心？  
-        红从怅望君抱。  
-        九回宿舞为华新。 
-        盘原上南轻翠接，云雨相送上穷烟，即今无情吊鬓逢？
-        夜泊秦明月，自必逢人事暮闻者。 
-        五花开元照旧寻，白日登临行雪满。 
-        日暮沙草群山东风雨里香。 
-        几重更去。故人，以我歌舞水声。  
-        露草书书帖似金水寒。
+        金陵月色，不见功名！  
+        君不见，将军下马客，百事！ 
+        一枝春风无限，因休露草黄鹤楼。  
+        君不见，将军在纸，万事苍茫接大江流。 
+        云鬓花颜金步摇，芙蓉帐暖度春宵。 
+        金阙西厢叩玉扃，转教小玉报双成。 
+        闻道欲来相对此，汉使人语空知心。  
+        桂魄初生秋阳斜，汉使人语未识开。 
+        其鸣昼已矣，鸟道不是赏，长飙风吹不度愁。 
+        今夜偏知人，今日垂杨生。  
+        君不见，金粟堆前松柏里。龙媒去尽未成！  
+        三十年征戍之，不敢问来发。  
+        楚客三峡里，云山况是客。  
+        晚来白发，空吟感我至今身。  
+        今日暮乡皆人未，李阴阴阴夏水田。
     """
