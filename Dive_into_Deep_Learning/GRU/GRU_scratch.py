@@ -15,10 +15,10 @@ num_hiddens = 256
 num_outputs = 2048  # can be the same as input (看做是单词预测单词)
 batch_size = 1
 num_steps = 1
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
+# 初始化模型参数
 def get_params():
     def _one(shape):
         # 将id转为one hot向量
@@ -40,10 +40,12 @@ def get_params():
     return nn.ParameterList([W_xz, W_hz, b_z, W_xr, W_hr, b_r, W_xh, W_hh, b_h, W_hq, b_q])
 
 
+# 初始化state为0
 def init_gru_state(batch_size, num_hiddens, device):
     return (torch.zeros((batch_size, num_hiddens), device=device),)
 
 
+# 定义模型
 def gru(inputs, state, params):
     W_xz, W_hz, b_z, W_xr, W_hr, b_r, W_xh, W_hh, b_h, W_hq, b_q = params
     H, = state
@@ -55,12 +57,13 @@ def gru(inputs, state, params):
     return Y, (H,)
 
 
-state = init_gru_state(batch_size, num_hiddens, device)
-inputs = torch.randn(10,1,2048) # 10个单词，batch_size=1， 每个单词2048维
-params = get_params()
-for t in range(10):  # time step
-    # 将上一时间步的输出作为当前时间步的输入
-    X = inputs[t,:,:]  # t时间时候的输入
-    # 计算输出和更新隐藏状态,这里是用1个gru单元计算 得到1个输出
-    (Y, state) = gru(X, state, params)
-    output = int(Y.argmax(dim=1).item())  # 每一时刻的最大可能的类别是哪个,或者softmax过一个
+if __name__ == '__main__':
+    state = init_gru_state(batch_size, num_hiddens, device)
+    inputs = torch.randn(10, 1, 2048)  # 10个单词，batch_size=1， 每个单词2048维
+    params = get_params()
+    for t in range(10):  # time step
+        # 将上一时间步的输出作为当前时间步的输入
+        X = inputs[t, :, :]  # t时间时候的输入
+        # 计算输出和更新隐藏状态,这里是用1个gru单元计算 得到1个输出
+        (Y, state) = gru(X, state, params)
+        output = int(Y.argmax(dim=1).item())  # 每一时刻的最大可能的类别是哪个,或者softmax过一个

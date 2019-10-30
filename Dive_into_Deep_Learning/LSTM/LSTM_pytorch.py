@@ -9,17 +9,16 @@
 import torch
 from torch import nn
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 num_hiddens = 128
 num_steps = 8  # 训练的时候步长是多少 就只能固定的用多长的序列来预测多长的序列 否则就要padding填充
 num_epochs = 64  # 过大会过拟合 造成的现象就是 直接背诵原文
 batch_size = 16
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 char_id_dict = {}
 id_char_dict = {}
 
 
+# 数据处理
 def data_iter_consecutive(corpus_indices, batch_size, num_steps, device=device):
     # 每次处理batch_size个字符，需处理batch_len次，batch_size可看做有batch_size个程序并行处理
     # 每num_steps个字符构成一个句子，当做一组；那么一共有epoch_size组
@@ -34,10 +33,10 @@ def data_iter_consecutive(corpus_indices, batch_size, num_steps, device=device):
         i = i * num_steps
         X = indices[:, i: i + num_steps]
         Y = indices[:, i + 1: i + num_steps + 1]
-        # X的维度是
         yield X, Y
 
 
+# 将实数转换为one-hot向量
 def one_hot(x, n_class, dtype=torch.float32):
     # X shape: (batch), output shape: (batch, n_class)
     x = x.long()
@@ -46,12 +45,14 @@ def one_hot(x, n_class, dtype=torch.float32):
     return res
 
 
+# 多个实数转换one-hot
 def to_onehot(X, n_class):
     # X shape: (batch, seq_len),
     # output: seq_len elements of (X.shape[1], batch, n_class)
     return [one_hot(X[:, i], n_class) for i in range(X.shape[1])]
 
 
+# 定义模型
 class LSTMModel(nn.Module):
     def __init__(self):
         super(LSTMModel, self).__init__()
@@ -59,6 +60,7 @@ class LSTMModel(nn.Module):
         self.dense = nn.Linear(num_hiddens, vocab_size)
         self.state = None
 
+    # 前向传播
     def forward(self, inputs, state):
         # X: (seq_len, batch, vocab_size)
         # Y: (seq_len, batch, num_hiddens)
@@ -69,6 +71,7 @@ class LSTMModel(nn.Module):
         output = self.dense(Y.view(-1, Y.shape[-1]))
         return output, self.state
 
+    # 训练
     def train(self, lr=1e-3):
         loss = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
@@ -103,7 +106,8 @@ class LSTMModel(nn.Module):
         torch.save(self.state_dict(), 'rnn_tangshi.pt')
         print("save model successfully!")
 
-    def predict(self, given_words, seq_len): # 输入规模要和输出规模一致
+    # 预测
+    def predict(self, given_words, seq_len):  # 输入规模要和输出规模一致
         state = None
         output = [char_id_dict[given_words[0]]]
         for t in range(seq_len + len(given_words) - 1):

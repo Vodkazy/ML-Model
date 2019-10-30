@@ -7,8 +7,6 @@
   @ Software : PyCharm
 """
 import sys
-import time
-
 import torch
 import torch.nn as nn
 import torchvision
@@ -42,6 +40,7 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     return train_iter, test_iter
 
 
+# 评估函数
 def evaluate_accuracy(data_iter, net):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     acc_sum, n = 0.0, 0
@@ -61,6 +60,7 @@ def evaluate_accuracy(data_iter, net):
     return acc_sum / n
 
 
+# 手动封装LeNet
 class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
@@ -91,6 +91,7 @@ class LeNet(nn.Module):
         return output
 
 
+# 训练模型
 def train(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs):
     net = net.to(device)
     loss = torch.nn.CrossEntropyLoss()
@@ -117,7 +118,8 @@ def train(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs)
               % (epoch + 1, test_acc))
 
 
-net = LeNet()
-train_iter, test_iter = load_data_fashion_mnist(batch_size=batch_size)
-optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-train(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs)
+if __name__ == '__main__':
+    net = LeNet()
+    train_iter, test_iter = load_data_fashion_mnist(batch_size=batch_size)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    train(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs)

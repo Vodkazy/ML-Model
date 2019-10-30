@@ -11,8 +11,11 @@ import torchvision
 import sys
 import matplotlib.pyplot as plt
 import torch.nn as nn
-from collections import OrderedDict
-from torch.nn import init
+
+batch_size = 256
+num_inputs = 784
+num_hiddens = 256
+num_outputs = 10
 
 
 # 和加载数据集有关的函数
@@ -37,12 +40,14 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     return train_iter, test_iter
 
 
+# 获取标签
 def get_fashion_mnist_labels(labels):
     text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
                    'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
     return [text_labels[int(i)] for i in labels]
 
 
+# 展示mnist数据集图表
 def show_fashion_mnist(images, labels):
     # 这里的_表示我们忽略（不使用）的变量
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
@@ -101,17 +106,7 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
               % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
 
 
-# 获取和读取数据
-batch_size = 256
-train_iter, test_iter = load_data_fashion_mnist(batch_size)
-
-# 定义和初始化模型
-# 输入层784 -> 隐藏层256 -> 输出层10
-num_inputs = 784
-num_hiddens = 256
-num_outputs = 10
-
-
+# 定义网络
 class FlattenLayer(nn.Module):
     def __init__(self):
         super(FlattenLayer, self).__init__()
@@ -120,22 +115,27 @@ class FlattenLayer(nn.Module):
         return x.view(x.shape[0], -1)
 
 
-net = nn.Sequential(
-    FlattenLayer(),
-    nn.Linear(num_inputs, num_hiddens),
-    nn.ReLU(),
-    nn.Linear(num_hiddens, num_outputs),
-)
+if __name__ == '__main__':
+    # 获取和读取数据
+    train_iter, test_iter = load_data_fashion_mnist(batch_size)
+    # 定义和初始化模型
+    # 输入层784 -> 隐藏层256 -> 输出层10
+    net = nn.Sequential(
+        FlattenLayer(),
+        nn.Linear(num_inputs, num_hiddens),
+        nn.ReLU(),
+        nn.Linear(num_hiddens, num_outputs),
+    )
 
-# CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
-# 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数
-# 可以理解为 CrossEntropyLoss() = log_softmax() + NLLLoss()（负对数似然损失函数）
-# 我们通常使用的cross entropy loss，几乎都可以称作softmax loss
-loss = nn.CrossEntropyLoss()
+    # CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
+    # 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数
+    # 可以理解为 CrossEntropyLoss() = log_softmax() + NLLLoss()（负对数似然损失函数）
+    # 我们通常使用的cross entropy loss，几乎都可以称作softmax loss
+    loss = nn.CrossEntropyLoss()
 
-# 定义优化算法
-optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+    # 定义优化算法
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
 
-# 训练模型
-num_epochs = 100
-train(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)
+    # 训练模型
+    num_epochs = 100
+    train(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)

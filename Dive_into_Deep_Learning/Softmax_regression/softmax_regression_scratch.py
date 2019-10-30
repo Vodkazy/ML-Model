@@ -37,12 +37,14 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     return train_iter, test_iter
 
 
+# 获取标签
 def get_fashion_mnist_labels(labels):
     text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
                    'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
     return [text_labels[int(i)] for i in labels]
 
 
+# 展示mnist数据集图表
 def show_fashion_mnist(images, labels):
     # 这里的_表示我们忽略（不使用）的变量
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
@@ -122,26 +124,27 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
               % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
 
 
-# 获取和读取数据
-batch_size = 256
-train_iter, test_iter = load_data_fashion_mnist(batch_size)
+if __name__ == '__main__':
+    # 获取和读取数据
+    batch_size = 256
+    train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
-# 初始化模型参数
-# 输入层784 -> 输出层10
-num_inputs = 784
-num_outputs = 10
-num_epochs, lr = 5, 0.1
-W = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_outputs)), dtype=torch.float)
-b = torch.zeros(num_outputs, dtype=torch.float)
-W.requires_grad_(requires_grad=True)
-b.requires_grad_(requires_grad=True)
+    # 初始化模型参数
+    # 输入层784 -> 输出层10
+    num_inputs = 784
+    num_outputs = 10
+    num_epochs, lr = 5, 0.1
+    W = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_outputs)), dtype=torch.float)
+    b = torch.zeros(num_outputs, dtype=torch.float)
+    W.requires_grad_(requires_grad=True)
+    b.requires_grad_(requires_grad=True)
 
-# 训练模型
-train(net, train_iter, test_iter, cross_entropy, num_epochs, batch_size, [W, b], lr)
+    # 训练模型
+    train(net, train_iter, test_iter, cross_entropy, num_epochs, batch_size, [W, b], lr)
 
-# 预测
-X, y = iter(test_iter).next()
-true_labels = get_fashion_mnist_labels(y.numpy())
-pred_labels = get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
-titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-show_fashion_mnist(X[0:9], titles[0:9])
+    # 预测
+    X, y = iter(test_iter).next()
+    true_labels = get_fashion_mnist_labels(y.numpy())
+    pred_labels = get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
+    titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+    show_fashion_mnist(X[0:9], titles[0:9])

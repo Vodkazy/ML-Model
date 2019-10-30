@@ -12,6 +12,12 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
+batch_size = 256
+num_inputs = 784
+num_hiddens = 256
+num_outputs = 10
+num_epochs, lr = 5, 100
+
 
 # Softmax就是对每个数据取个以e为底的指数，然后算完后除以所有数据的sum
 
@@ -37,12 +43,14 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     return train_iter, test_iter
 
 
+# 获取标签
 def get_fashion_mnist_labels(labels):
     text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
                    'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
     return [text_labels[int(i)] for i in labels]
 
 
+# 展示mnist数据集图表
 def show_fashion_mnist(images, labels):
     # 这里的_表示我们忽略（不使用）的变量
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
@@ -120,31 +128,27 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
               % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
 
 
-# 获取和读取数据
-batch_size = 256
-train_iter, test_iter = load_data_fashion_mnist(batch_size)
+if __name__ == '__main__':
+    # 初始化模型参数
+    # 输入层784 -> 隐藏层256 -> 输出层10
+    W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens)), dtype=torch.float)
+    b1 = torch.zeros(num_hiddens, dtype=torch.float)
+    W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens, num_outputs)), dtype=torch.float)
+    b2 = torch.zeros(num_outputs, dtype=torch.float)
+    W1.requires_grad_(requires_grad=True)
+    b1.requires_grad_(requires_grad=True)
+    W2.requires_grad_(requires_grad=True)
+    b2.requires_grad_(requires_grad=True)
 
-# 初始化模型参数
-# 输入层784 -> 隐藏层256 -> 输出层10
-num_inputs = 784
-num_hiddens = 256
-num_outputs = 10
-num_epochs, lr = 5, 100
-W1 = torch.tensor(np.random.normal(0, 0.01, (num_inputs, num_hiddens)), dtype=torch.float)
-b1 = torch.zeros(num_hiddens, dtype=torch.float)
-W2 = torch.tensor(np.random.normal(0, 0.01, (num_hiddens, num_outputs)), dtype=torch.float)
-b2 = torch.zeros(num_outputs, dtype=torch.float)
-W1.requires_grad_(requires_grad=True)
-b1.requires_grad_(requires_grad=True)
-W2.requires_grad_(requires_grad=True)
-b2.requires_grad_(requires_grad=True)
+    # 获取和读取数据
+    train_iter, test_iter = load_data_fashion_mnist(batch_size)
 
-# 训练模型，这里直接使用PyTorch提供的包括softmax运算和交叉熵损失计算的函数
-train(net, train_iter, test_iter, torch.nn.CrossEntropyLoss(), num_epochs, batch_size, [W1, b1, W2, b2], lr)
+    # 训练模型，这里直接使用PyTorch提供的包括softmax运算和交叉熵损失计算的函数
+    train(net, train_iter, test_iter, torch.nn.CrossEntropyLoss(), num_epochs, batch_size, [W1, b1, W2, b2], lr)
 
-# 预测
-X, y = iter(test_iter).next()
-true_labels = get_fashion_mnist_labels(y.numpy())
-pred_labels = get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
-titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
-show_fashion_mnist(X[0:9], titles[0:9])
+    # 预测
+    X, y = iter(test_iter).next()
+    true_labels = get_fashion_mnist_labels(y.numpy())
+    pred_labels = get_fashion_mnist_labels(net(X).argmax(dim=1).numpy())
+    titles = [true + '\n' + pred for true, pred in zip(true_labels, pred_labels)]
+    show_fashion_mnist(X[0:9], titles[0:9])

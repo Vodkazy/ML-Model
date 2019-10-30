@@ -11,8 +11,13 @@ import torchvision
 import sys
 import matplotlib.pyplot as plt
 import torch.nn as nn
-from collections import OrderedDict
-from torch.nn import init
+
+batch_size = 256
+num_inputs = 784
+num_hiddens1 = 256
+num_hiddens2 = 256
+num_outputs = 10
+dropout_1, dropout_2 = 0.2, 0.5
 
 
 # 和加载数据集有关的函数
@@ -37,12 +42,14 @@ def load_data_fashion_mnist(batch_size, resize=None, root='~/Desktop'):
     return train_iter, test_iter
 
 
+# 获取标签
 def get_fashion_mnist_labels(labels):
     text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
                    'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
     return [text_labels[int(i)] for i in labels]
 
 
+# 展示mnist数据集图表
 def show_fashion_mnist(images, labels):
     # 这里的_表示我们忽略（不使用）的变量
     _, figs = plt.subplots(1, len(images), figsize=(12, 12))
@@ -61,6 +68,14 @@ def evaluate_accuracy(data_iter, net):
         acc_sum += (net(X).argmax(dim=1) == y).float().sum().item()
         n += y.shape[0]
     return acc_sum / n
+
+
+# 定义优化器
+def sgd(params, lr, batch_size):
+    # 为了和原书保持一致，这里除以了batch_size，但是应该是不用除的，因为一般用PyTorch计算loss时就默认已经
+    # 沿batch维求了平均了。
+    for param in params:
+        param.data -= lr * param.grad / batch_size  # 注意这里更改param时用的param.data
 
 
 # 训练模型
@@ -93,19 +108,6 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
               % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
 
 
-# 获取和读取数据
-batch_size = 256
-train_iter, test_iter = load_data_fashion_mnist(batch_size)
-
-# 定义和初始化模型
-# 输入层784 -> 隐藏层256 -> 隐藏层256 -> 输出层10
-num_inputs = 784
-num_hiddens1 = 256
-num_hiddens2 = 256
-num_outputs = 10
-dropout_1, dropout_2 = 0.2, 0.5
-
-
 class FlattenLayer(nn.Module):
     def __init__(self):
         super(FlattenLayer, self).__init__()
@@ -113,31 +115,38 @@ class FlattenLayer(nn.Module):
     def forward(self, x):  # x shape: (batch, *, *, ...)
         return x.view(x.shape[0], -1)
 
+
 """
     在PyTorch中，我们只需要在全连接层后添加Dropout层并指定丢弃概率。在训练模型时，Dropout
     层将以指定的丢弃概率随机丢弃上一层的输出元素；在测试模型时（即model.eval()后），
     Dropout层并不发挥作用。
 """
-net = nn.Sequential(
-    FlattenLayer(),
-    nn.Linear(num_inputs, num_hiddens1),
-    nn.ReLU(),
-    nn.Dropout(dropout_1),
-    nn.Linear(num_hiddens1, num_hiddens2),
-    nn.ReLU(),
-    nn.Dropout(dropout_2),
-    nn.Linear(num_hiddens2, num_outputs)
-)
 
-# CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
-# 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数
-# 可以理解为 CrossEntropyLoss() = log_softmax() + NLLLoss()（负对数似然损失函数）
-# 我们通常使用的cross entropy loss，几乎都可以称作softmax loss
-loss = nn.CrossEntropyLoss()
+if __name__ == '__main__':
+    # 获取和读取数据
+    train_iter, test_iter = load_data_fashion_mnist(batch_size)
+    # 定义和初始化模型
+    # 输入层784 -> 隐藏层256 -> 隐藏层256 -> 输出层10
+    net = nn.Sequential(
+        FlattenLayer(),
+        nn.Linear(num_inputs, num_hiddens1),
+        nn.ReLU(),
+        nn.Dropout(dropout_1),
+        nn.Linear(num_hiddens1, num_hiddens2),
+        nn.ReLU(),
+        nn.Dropout(dropout_2),
+        nn.Linear(num_hiddens2, num_outputs)
+    )
 
-# 定义优化算法
-optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+    # CrossEntropyLoss()中已经封装好了包含softmax和交叉熵损失计算的函数
+    # 损失函数 CrossEntropyLoss() 与 NLLLoss()类似, 唯一的不同是它为我们去做 softmax 并取对数
+    # 可以理解为 CrossEntropyLoss() = log_softmax() + NLLLoss()（负对数似然损失函数）
+    # 我们通常使用的cross entropy loss，几乎都可以称作softmax loss
+    loss = nn.CrossEntropyLoss()
 
-# 训练模型
-num_epochs = 5
-train(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)
+    # 定义优化算法
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+
+    # 训练模型
+    num_epochs = 5
+    train(net, train_iter, test_iter, loss, num_epochs, batch_size, None, None, optimizer)
