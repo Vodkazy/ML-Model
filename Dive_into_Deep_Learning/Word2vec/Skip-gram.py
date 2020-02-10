@@ -137,7 +137,7 @@ def train(net, loss, optimizer, device, num_epochs, lr):
         for batch in data_iter:
             center, context_negative, mask, label = [data.to(device) for data in batch]
             pred = skip_gram(center, context_negative, net[0], net[1])
-            # 使用掩码变量mask来避免填充项对损失函数计算的影响
+            # 使用掩码变量mask来避免填充项对损失函数计算的影响，mask在计算loss时起作用
             l = (loss(pred.view(label.shape), label, mask) *
                  mask.shape[1] / mask.float().sum(dim=1)).mean()  # 用⼀个batch的平均loss来当做本批量的误差
             optimizer.zero_grad()
