@@ -6,8 +6,8 @@
   @ File     : RNN_scratch .py
   @ Software : PyCharm
 """
-import torch
 import numpy as np
+import torch
 import torch.nn as nn
 
 num_inputs = 2048  # dim of one input (比如word embedding的维数)

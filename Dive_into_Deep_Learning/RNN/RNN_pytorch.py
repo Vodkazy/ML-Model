@@ -125,7 +125,7 @@ class RNNModel(nn.Module):
 
 if __name__ == '__main__':
     # 读取数据
-    f = open('tangshi.txt', 'rb')
+    f = open('./data/tangshi.txt', 'rb')
     corpus = f.read().decode('utf-8').replace("\n", " ").replace("\r", " ")
     _index = 0
     for _, value in enumerate(corpus):
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # 隐藏状态h的形状为(层数, 批量大小, 隐藏单元个数)
     model = RNNModel().to(device)
     # model.train()
-    model.load_state_dict(torch.load('rnn_tangshi.pt', map_location=torch.device(device)))
+    model.load_state_dict(torch.load('./data/rnn_tangshi.pt', map_location=torch.device(device)))
     print(model.predict('金陵月色', 256))
 
     """
