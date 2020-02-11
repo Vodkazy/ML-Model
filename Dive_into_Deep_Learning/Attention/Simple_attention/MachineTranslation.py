@@ -96,6 +96,7 @@ def translate(encoder, decoder, input_seq, max_seq_len):
     enc_input = torch.tensor([[in_vocab.stoi[tk] for tk in in_tokens]])  # batch=1
     enc_state = None
     enc_output, enc_state = encoder(enc_input, enc_state)
+    # enc_output:(time_step, 1, num_hiddens), enc_state:(num_layers, 1, num_hiddens)
     dec_input = torch.tensor([out_vocab.stoi[BOS]])
     dec_state = enc_state
     output_tokens = []

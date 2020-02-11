@@ -17,11 +17,10 @@ class Encoder(nn.Module):
 
     def forward(self, inputs, state):
         """
-        :param inputs: (batch, time_steps)
+        :param inputs: (batch, time_step)
         :param state:
         :return:
         """
         # 互换输入的样本维和时间步维
-        embedding = self.embedding(inputs.long()).permute(1, 0, 2)  # (time_steps, batch, embedding_size)
-        print(embedding.shape)
+        embedding = self.embedding(inputs.long()).permute(1, 0, 2)  # (time_step, batch, embedding_size)
         return self.rnn(embedding, state)  # GRU的state是h, 而LSTM的是⼀个元组(h, c)
